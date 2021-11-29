@@ -5,11 +5,18 @@ use crossbeam_channel::Sender;
 use ethers::types::U256;
 use fluidex_common::db::models;
 use std::time::Duration;
+use serde::Deserialize;
 
 #[derive(Debug)]
 pub struct TaskFetcher {
     connpool: PoolType,
     last_block_id: Option<i64>,
+}
+
+#[derive(Deserialize, Debug, Clone)]
+pub struct L2PubDataAux {
+    #[serde(rename = "deposit")]
+    pub deposit_txs_pos: Vec<u32>,
 }
 
 #[derive(sqlx::FromRow, Debug, Clone)]
@@ -18,6 +25,7 @@ struct Task {
     public_input: Vec<u8>,
     proof: Vec<u8>,
     public_data: Vec<u8>,
+    aux_data: sqlx::types::Json<L2PubDataAux>,
 }
 
 impl TryFrom<Task> for SubmitBlockArgs {
@@ -45,7 +53,8 @@ impl SubmitBlockArgs {
             select t.block_id     as block_id,
                    t.public_input as public_input,
                    t.proof        as proof,
-                   l2b.raw_public_data as public_data
+                   l2b.raw_public_data as public_data,
+                   l2b.public_data_aux as aux_data
             from {} t
                      inner join {} l2b
                                 on t.block_id = l2b.block_id
@@ -72,7 +81,8 @@ impl SubmitBlockArgs {
             select t.block_id     as block_id,
                    t.public_input as public_input,
                    t.proof        as proof,
-                   l2b.raw_public_data as public_data
+                   l2b.raw_public_data as public_data,
+                   l2b.public_data_aux as aux_data
             from {} t
                      inner join {} l2b
                                 on t.block_id = l2b.block_id

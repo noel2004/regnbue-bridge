@@ -52,16 +52,6 @@ impl EthSender {
         }
     }
 
-    pub async fn verify_submitting(&self, args: SubmitBlockArgs) -> Result<bool, anyhow::Error> {
-        let ret = self
-            .contract
-            .method::<_, bool>("verifySubmitting", (args.block_id, args.public_inputs, args.serialized_proof, args.public_data))?
-            .call()
-            .await?;
-        
-        Ok(ret)
-    }
-
     pub async fn verify_block(&self, args: SubmitBlockArgs) -> Result<bool, anyhow::Error> {
         let ret = self
             .contract
